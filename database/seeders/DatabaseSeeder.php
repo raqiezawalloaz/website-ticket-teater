@@ -16,17 +16,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Buat atau update user admin default
-        User::firstOrCreate(
-            ['email' => 'admin@gmail.com'],
-            [
-                'name' => 'Admin Teater',
-                'password' => Hash::make('admin123'),
-                'role' => 'admin',
-            ]
-        );
-
-        // Anda bisa tambah user lain di sini jika diperlukan
+        $this->call([
+            AdminSeeder::class,
+            EventSeeder::class,
+        ]);
     }
 }
 

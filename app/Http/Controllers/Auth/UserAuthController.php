@@ -49,13 +49,7 @@ class UserAuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-
-            // redirect based on role
-            if (Auth::user() && Auth::user()->role === 'admin') {
-                return redirect()->intended('/admin/dashboard');
-            }
-
-            return redirect()->intended('/events');
+            return redirect()->intended('/dashboard');
         }
 
         return back()->withErrors(['email' => 'Credentials do not match our records'])->onlyInput('email');
