@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Buat atau update user admin default
+        // 1. Buat atau update user admin default
         User::firstOrCreate(
             ['email' => 'admin@gmail.com'],
             [
@@ -26,7 +26,10 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // Anda bisa tambah user lain di sini jika diperlukan
+        // 2. Memanggil Seeder lainnya (Termasuk Modul Transaksi kamu)
+        $this->call([
+            TransactionSeeder::class,
+            // Jika temanmu punya seeder lain, tambahkan di sini
+        ]);
     }
 }
-
