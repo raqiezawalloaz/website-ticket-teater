@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Event - CAMPUS-EVENT</title>
+    <title>Edit Pengguna - CAMPUS-EVENT</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
@@ -45,7 +45,7 @@
             border-radius: 12px; 
             padding: 30px; 
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            width: 100%; /* Membuat card melebar penuh */
+            width: 100%;
         }
 
         .section-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 25px; color: #1e293b; }
@@ -58,6 +58,10 @@
             border: 1px solid #e2e8f0; background: #fff; font-size: 0.9rem;
         }
 
+        input:focus, textarea:focus, select:focus {
+            outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1);
+        }
+
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
         .btn-primary { 
@@ -65,10 +69,19 @@
             padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;
             display: inline-flex; align-items: center; gap: 8px;
         }
+        .btn-primary:hover { background: #0052d4; }
+
         .btn-secondary {
             background: #f1f5f9; color: #475569; text-decoration: none;
             padding: 12px 25px; border-radius: 8px; font-weight: bold; margin-left: 10px;
         }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        .alert-error {
+            background: #fee2e2; border-left: 4px solid #ef4444; padding: 12px 15px;
+            border-radius: 6px; margin-bottom: 20px; color: #991b1b;
+        }
+        .alert-error li { margin-left: 20px; }
     </style>
 </head>
 <body>
@@ -76,74 +89,74 @@
     <div class="sidebar">
         <div class="brand">CAMPUS-EVENT <span>Sistem Manajemen Event Terintegrasi</span></div>
         <nav>
-            <a href="#" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
-            <a href="{{ route('admin.events.index') }}" class="nav-item active"><i class="fas fa-calendar-alt"></i> Event & Kategori</a>
+            <a href="{{ route('dashboard') }}" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
+            <a href="{{ route('admin.events.index') }}" class="nav-item"><i class="fas fa-calendar-alt"></i> Event & Kategori</a>
+            <a href="{{ route('admin.users.index') }}" class="nav-item active"><i class="fas fa-users"></i> Kelola Pengguna</a>
             <a href="#" class="nav-item"><i class="fas fa-ticket-alt"></i> Transaksi & Tiket</a>
             <a href="#" class="nav-item"><i class="fas fa-store"></i> Tenant & Sponsor</a>
-            <a href="#" class="nav-item"><i class="fas fa-certificate"></i> Sertifikat & Feedback</a>
         </nav>
     </div>
 
     <div class="main-content">
         <div class="header">
             <div>
-                <h2 style="font-size: 1.5rem;">Edit Event</h2>
-                <p style="color: #64748b; font-size: 0.85rem;">Perbarui informasi detail event Anda</p>
+                <h2 style="font-size: 1.5rem;">Edit Pengguna</h2>
+                <p style="color: #64748b; font-size: 0.85rem;">Perbarui informasi pengguna</p>
             </div>
             <div class="user-info">
                 <div>
-                    <div style="font-weight: bold;">Admin Teater</div>
-                    <div style="font-size: 0.75rem; color: #64748b;">admin@gmail.com</div>
+                    <div style="font-weight: bold;">{{ Auth::user()->name }}</div>
+                    <div style="font-size: 0.75rem; color: #64748b;">{{ Auth::user()->email }}</div>
                 </div>
-                <div style="width: 40px; height: 40px; background: #6366f1; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">A</div>
+                <div style="width: 40px; height: 40px; background: #6366f1; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">{{ substr(Auth::user()->name, 0, 1) }}</div>
             </div>
         </div>
 
-        <form action="{{ route('admin.events.update', $event->id) }}" method="POST">
+        @if($errors->any())
+            <div class="alert-error">
+                <strong><i class="fas fa-exclamation-circle"></i> Terjadi kesalahan:</strong>
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('admin.users.update', $user->id) }}" method="POST">
             @csrf
             @method('PUT')
             
             <div class="card">
-                <h3 class="section-title">Informasi Dasar</h3>
+                <h3 class="section-title">Informasi Pengguna</h3>
 
                 <div class="form-group">
-                    <label>Nama Event</label>
-                    <input type="text" name="nama_event" value="{{ old('nama_event', $event->nama_event) }}" required>
+                    <label>Nama Lengkap</label>
+                    <input type="text" name="name" value="{{ old('name', $user->name) }}" placeholder="Masukkan nama lengkap" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Deskripsi Event</label>
-                    <textarea name="deskripsi" rows="5">{{ old('deskripsi', $event->deskripsi) }}</textarea>
-                </div>
-
-                <div class="row">
-                    <div class="form-group">
-                        <label>Tanggal & Waktu</label>
-                        <input type="datetime-local" name="tanggal_event" 
-                               value="{{ old('tanggal_event', date('Y-m-d\TH:i', strtotime($event->tanggal_event))) }}" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Status Event</label>
-                        <select name="status_event">
-                            <option value="aktif" {{ $event->status_event == 'aktif' ? 'selected' : '' }}>Aktif</option>
-                            <option value="nonaktif" {{ $event->status_event == 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
-                        </select>
-                    </div>
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ old('email', $user->email) }}" placeholder="Masukkan email" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Lokasi / Link Meeting</label>
-                    <input type="text" name="lokasi" value="{{ old('lokasi', $event->lokasi) }}">
+                    <label>Role</label>
+                    <select name="role" required>
+                        <option value="admin" {{ $user->role == 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="user" {{ $user->role == 'user' ? 'selected' : '' }}>User</option>
+                    </select>
                 </div>
 
                 <div style="margin-top: 20px;">
                     <button type="submit" class="btn-primary">
                         <i class="fas fa-save"></i> Simpan Perubahan
                     </button>
-                    <a href="{{ route('admin.events.index') }}" class="btn-secondary">Batal</a>
+                    <a href="{{ route('admin.users.index') }}" class="btn-secondary">Batal</a>
                 </div>
             </div>
         </form>
     </div>
+
 </body>
 </html>

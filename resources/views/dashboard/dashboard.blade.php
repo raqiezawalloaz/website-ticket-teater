@@ -130,6 +130,18 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             border: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 12px -2px rgba(0,0,0,0.1);
+            border-color: #e2e8f0;
+        }
+
+        .stat-card:active {
+            transform: translateY(-2px);
         }
 
         .stat-icon {
@@ -158,6 +170,11 @@
             padding: 25px;
             border-radius: 12px;
             border: 1px solid #f1f5f9;
+            transition: all 0.2s ease;
+        }
+
+        .panel:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         .panel h3 { margin-bottom: 20px; font-size: 1.1rem; }
@@ -169,12 +186,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+
             margin-bottom: 10px;
-            transition: 0.2s;
+            cursor: pointer;
+            transition: all 0.2s ease;
+
         }
 
         .event-item:hover {
             background: #f1f5f9;
+
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .event-item:active {
+            transform: translateY(0);
         }
 
         .badge {
@@ -184,8 +211,109 @@
             border-radius: 20px;
             font-size: 0.75rem;
         }
+
         
-        a { text-decoration: none; color: inherit; }
+        a { text-decoration: none; color: inherit; 
+        }
+
+
+        /* Dropdown Profile */
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 8px;
+            border-radius: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .profile-trigger:hover {
+            background: #f1f5f9;
+        }
+
+        .profile-trigger:active {
+            transform: scale(0.98);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            min-width: 200px;
+            margin-top: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .dropdown-menu.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-menu a,
+        .dropdown-menu form button {
+            display: block;
+            width: 100%;
+            padding: 12px 16px;
+            text-align: left;
+            color: #475569;
+            text-decoration: none;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-menu a:active,
+        .dropdown-menu form button:active {
+            transform: translateX(2px);
+        }
+
+        .dropdown-menu a:first-child,
+        .dropdown-menu form:first-child button {
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+
+        .dropdown-menu a:last-child,
+        .dropdown-menu form:last-child button {
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        .dropdown-menu a:hover,
+        .dropdown-menu form button:hover {
+            background: #f1f5f9;
+            color: var(--primary-blue);
+        }
+
+        .dropdown-menu a i,
+        .dropdown-menu form button i {
+            margin-right: 8px;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: #e2e8f0;
+            margin: 4px 0;
+        }
+
     </style>
 </head>
 <body>
@@ -197,13 +325,20 @@
             <span>Sistem Manajemen Event Terintegrasi</span>
         </div>
         <nav>
-            <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+
+            <a href="{{ route('dashboard') }}"
+              class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                 <i class="fas fa-th-large"></i> Dashboard
             </a>
             
-            @if(Auth::check() && Auth::user()->email === 'admin@gmail.com')
+            @if(Auth::check() && Auth::user()->role === 'admin')
                 <a href="{{ route('admin.events.index') }}" class="nav-item">
                     <i class="fas fa-calendar-alt"></i> Event & Kategori
+                </a>
+            @else
+
+                <a href="{{ route('events.index') }}" class="nav-item">
+                     <i class="fas fa-calendar-alt"></i> Event & Kategori
                 </a>
             @endif
 
@@ -222,12 +357,45 @@
     <div class="main-content">
         <div class="header">
             <h2 style="color: #1e293b;">Dashboard</h2>
-            <div class="user-profile">
-                <div style="text-align: right;">
-                    <div style="font-weight: bold;">{{ Auth::user()->name }}</div>
-                    <div style="font-size: 0.75rem; color: #64748b;">{{ Auth::user()->email }}</div>
+            <div class="dropdown-container">
+                <button class="profile-trigger" onclick="toggleDropdown()">
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold;">{{ Auth::user()->name }}</div>
+                        <div style="font-size: 0.75rem; color: #64748b;">{{ Auth::user()->email }}</div>
+                    </div>
+                    <div class="avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
+                </button>
+                <div class="dropdown-menu" id="profileDropdown">
+                    @if(Auth::user()->role === 'admin')
+                        <a href="{{ route('admin.users.index') }}" onclick="closeDropdown()">
+                            <i class="fas fa-users"></i> Kelola Pengguna
+                        </a>
+                        <div class="dropdown-divider"></div>
+                    @else
+                        <a href="#" onclick="alert('Fitur Profil Saya akan segera hadir'); closeDropdown();" style="cursor: pointer;">
+                            <i class="fas fa-user-circle"></i> Profil Saya
+                        </a>
+                        <a href="#" onclick="alert('Fitur Pengaturan akan segera hadir'); closeDropdown();" style="cursor: pointer;">
+                            <i class="fas fa-cog"></i> Pengaturan
+                        </a>
+                        <div class="dropdown-divider"></div>
+                    @endif
+                    @if(Auth::user()->role === 'admin')
+                        <form method="POST" action="{{ route('admin.logout') }}" style="display: block;">
+                            @csrf
+                            <button type="submit" onclick="closeDropdown()">
+                                <i class="fas fa-sign-out-alt"></i> Keluar
+                            </button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('user.logout') }}" style="display: block;">
+                            @csrf
+                            <button type="submit" onclick="closeDropdown()">
+                                <i class="fas fa-sign-out-alt"></i> Keluar
+                            </button>
+                        </form>
+                    @endif
                 </div>
-                <div class="avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
             </div>
         </div>
 
@@ -314,6 +482,29 @@
             </div>
         </div>
     </div>
+
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        function closeDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.remove('active');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('profileDropdown');
+            const trigger = document.querySelector('.profile-trigger');
+            const container = document.querySelector('.dropdown-container');
+
+            if (!container.contains(event.target)) {
+                dropdown.classList.remove('active');
+            }
+        });
+    </script>
 
 </body>
 </html>
