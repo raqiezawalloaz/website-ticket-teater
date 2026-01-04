@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $event->nama_event }} - CAMPUS-EVENT</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary-blue: #0061ff;
@@ -279,7 +280,7 @@
                         <div class="avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
                     </button>
                     <div class="dropdown-menu" id="profileDropdown">
-                        <form method="POST" action="{{ route('user.logout') }}" style="display: block;">
+                        <form method="POST" action="{{ route('logout') }}" style="display: block;">
                             @csrf
                             <button type="submit" onclick="closeDropdown()">
                                 <i class="fas fa-sign-out-alt"></i> Keluar
@@ -288,7 +289,7 @@
                     </div>
                 @else
                     <div style="display: flex; gap: 10px;">
-                        <a href="{{ route('user.login') }}" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">Login</a>
+                        <a href="{{ route('login') }}" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">Login</a>
                         <span style="color: #e2e8f0;">|</span>
                         <a href="{{ route('register') }}" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">Daftar</a>
                     </div>
