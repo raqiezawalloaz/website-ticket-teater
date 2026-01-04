@@ -4,116 +4,124 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Services\MidtransService;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf; // Library PDF
+use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Exception;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
+    protected MidtransService $midtransService;
+
+    public function __construct(MidtransService $midtransService)
+    {
+        $this->midtransService = $midtransService;
+    }
+
     /**
-     * Menampilkan daftar transaksi dan statistik ringkas.
+     * FITUR API & UPDATE: Sinkronisasi Status
+     */
+    public function checkStatus($id)
+    {
+        $transaction = Transaction::findOrFail($id);
+
+        try {
+            // Controller cukup panggil satu baris ini. Sangat Clean!
+            $newStatus = $this->midtransService->getLatestStatus($transaction->reference_number);
+
+            $transaction->update(['status' => $newStatus]);
+
+            return back()->with('success', "Update Berhasil: Tiket kini berstatus " . strtoupper($newStatus));
+
+        } catch (Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    /**
+     * FITUR CRUD (Read) & RELASI: Daftar Transaksi
      */
     public function index()
     {
-        // Mengambil semua data transaksi terbaru
-        $transactions = Transaction::latest()->get();
+        // Syarat Tubes: Eager Loading relasi (User & Event)
+        $transactions = Transaction::with(['user', 'event'])->latest()->paginate(10);
 
-        // MENGHITUNG STATISTIK (Agar sinkron dengan kotak-kotak di dashboard/index)
         $stats = [
             'total'   => Transaction::count(),
             'success' => Transaction::where('status', 'success')->count(),
             'pending' => Transaction::where('status', 'pending')->count(),
-            'failed'  => Transaction::whereIn('status', ['failed', 'expired'])->count(),
+            'failed'  => Transaction::whereIn('status', ['failed', 'expired', 'deny'])->count(),
         ];
 
         return view('admin.transactions.index', compact('transactions', 'stats'));
     }
 
     /**
-     * MINGGU 2: Simulasi Tombol "Bayar" (Mock Payment).
+     * FITUR CRUD (Create) & VALIDASI
      */
-    public function mockPayment($id)
+    public function checkout(Request $request)
     {
-        $transaction = Transaction::findOrFail($id);
-        
-        // Update status jadi success
-        $transaction->update(['status' => 'success']);
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'quantity' => 'required|integer|min:1',
+            'customer_name' => 'required|string',
+            'customer_email' => 'required|email',
+        ]);
 
-        return redirect()->route('admin.transactions.index')
-                         ->with('success', 'Simulasi Pembayaran Berhasil! Pesanan #' . $transaction->reference_number . ' kini Lunas.');
-    }
+        try {
+            // Harga statis atau dinamis dari event
+            $total = 50000 * $request->quantity;
 
-    /**
-     * MINGGU 2: Simulasi Cek Status API (Random Status).
-     */
-    public function checkStatus($id)
-    {
-        $transaction = Transaction::findOrFail($id);
-        
-        // Simulasi respon dari server Payment Gateway
-        $statuses = ['success', 'pending', 'failed', 'expired'];
-        $randomStatus = $statuses[array_rand($statuses)];
+            $transaction = Transaction::create([
+                'user_id'          => Auth::id(), // Relasi 1
+                'event_id'         => $request->event_id, // Relasi 2
+                'reference_number' => 'TRX-' . time(),
+                'customer_name'    => $request->customer_name,
+                'customer_email'   => $request->customer_email,
+                'ticket_code'      => 'TKT-' . strtoupper(Str::random(6)),
+                'price_per_ticket' => 50000,
+                'quantity'         => $request->quantity,
+                'total_price'      => $total,
+                'status'           => 'pending',
+                'is_checked_in'    => false,
+            ]);
 
-        $transaction->update(['status' => $randomStatus]);
+            $snapToken = $this->midtransService->getSnapToken($transaction);
+            $transaction->update(['snap_token' => $snapToken]);
 
-        return redirect()->route('admin.transactions.index')
-                         ->with('success', 'API Midtrans Check: Status terbaru untuk #' . $transaction->reference_number . ' adalah ' . strtoupper($randomStatus));
-    }
+            return view('user.payment_page', compact('snapToken', 'transaction'));
 
-    /**
-     * MINGGU 2: Fitur Validasi Tiket (Check-in).
-     */
-    public function checkIn($id)
-    {
-        $transaction = Transaction::findOrFail($id);
-        
-        // Cek apakah pembayaran sudah sukses
-        if ($transaction->status !== 'success') {
-            return back()->with('error', 'Tiket tidak bisa Check-in karena belum lunas!');
+        } catch (Exception $e) {
+            return back()->with('error', 'Gagal memproses pembayaran: ' . $e->getMessage());
         }
-
-        // Cek apakah sudah pernah check-in sebelumnya (mencegah tiket ganda)
-        if ($transaction->is_checked_in) {
-            return back()->with('error', 'Tiket ini sudah melakukan Check-in sebelumnya!');
-        }
-
-        $transaction->update(['is_checked_in' => true]);
-
-        return back()->with('success', 'Check-in Berhasil! Selamat menonton untuk #' . $transaction->customer_name);
     }
 
     /**
-     * MINGGU 3: Export ke PDF.
+     * FITUR CETAK: PDF
      */
     public function exportPdf()
     {
-        $transactions = Transaction::latest()->get();
-        
-        // Memanggil view khusus PDF (Pastikan file resources/views/admin/transactions/report.blade.php ada)
+        $transactions = Transaction::with(['user', 'event'])->get();
         $pdf = Pdf::loadView('admin.transactions.report', compact('transactions'));
-        
-        return $pdf->download('Laporan_Transaksi_Teater_' . date('Y-m-d') . '.pdf');
+        return $pdf->download('Laporan-Tiket.pdf');
     }
 
     /**
-     * Update Status Manual (Jika dibutuhkan admin).
-     */
-    public function updateStatus(Request $request, $id)
-    {
-        $transaction = Transaction::findOrFail($id);
-        $transaction->update(['status' => $request->status]);
-
-        return back()->with('success', 'Status transaksi #' . $transaction->reference_number . ' berhasil diubah secara manual.');
-    }
-
-    /**
-     * Hapus Transaksi.
+     * FITUR CRUD: Delete
      */
     public function destroy($id)
     {
-        $transaction = Transaction::findOrFail($id);
-        $ref = $transaction->reference_number;
-        $transaction->delete();
+        Transaction::findOrFail($id)->delete();
+        return back()->with('success', 'Transaksi dihapus.');
+    }
 
-        return back()->with('success', 'Data transaksi #' . $ref . ' telah dihapus dari sistem.');
+    public function checkIn($id)
+    {
+        $transaction = Transaction::findOrFail($id);
+        if ($transaction->status !== 'success') return back()->with('error', 'Belum lunas!');
+        $transaction->update(['is_checked_in' => true]);
+        return back()->with('success', 'Check-in berhasil!');
     }
 }

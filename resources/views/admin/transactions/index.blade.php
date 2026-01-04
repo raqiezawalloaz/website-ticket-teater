@@ -41,7 +41,7 @@
 
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 12px 15px; background: #f8fafc; color: #64748b; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; vertical-align: middle; }
 
         .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
         .badge-success { background: #dcfce7; color: #166534; }
@@ -128,9 +128,7 @@
                 <thead>
                     <tr>
                         <th>Ref / Kode Tiket</th>
-                        <th>Customer</th>
-                        <th>Kategori / Kursi</th>
-                        <th>Status Bayar</th>
+                        <th>Customer / User</th> <th>Event / Kategori</th> <th>Status Bayar</th>
                         <th>Status Tiket</th>
                         <th>Aksi</th>
                     </tr>
@@ -141,17 +139,34 @@
                         <td>
                             <strong>#{{ $trx->reference_number }}</strong><br>
                             <small class="text-primary">{{ $trx->ticket_code }}</small>
+                            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 2px;">{{ $trx->created_at->format('d M Y, H:i') }}</div>
                         </td>
-                        <td>{{ $trx->customer_name }}</td>
+
                         <td>
-                            <span class="badge" style="background: #334155; color: white;">{{ $trx->ticket_category }}</span><br>
-                            <small>Seat: {{ $trx->seat_number ?? 'Bebas' }}</small>
+                            <div style="font-weight: bold;">
+                                {{ $trx->user->name ?? $trx->customer_name }}
+                            </div>
+                            <small style="color: #64748b;">
+                                {{ $trx->user->email ?? $trx->customer_email }}
+                            </small><br>
+                            <small style="color: #64748b;">{{ $trx->customer_phone }}</small>
                         </td>
+
+                        <td>
+                            <div style="font-weight: bold; color: var(--primary-blue); margin-bottom: 4px;">
+                                {{ $trx->event->title ?? 'Event Tidak Ditemukan' }}
+                            </div>
+
+                            <span class="badge" style="background: #334155; color: white;">{{ $trx->ticket_category }}</span>
+                            <small style="margin-left: 5px;">Seat: {{ $trx->seat_number ?? 'Bebas' }}</small>
+                        </td>
+
                         <td>
                             <span class="badge {{ $trx->status == 'success' ? 'badge-success' : ($trx->status == 'pending' ? 'badge-warning' : 'badge-danger') }}">
                                 {{ strtoupper($trx->status) }}
                             </span>
                         </td>
+
                         <td>
                             @if($trx->is_checked_in)
                                 <span class="badge badge-info">SUDAH MASUK</span>
@@ -159,19 +174,20 @@
                                 <span class="badge badge-secondary">BELUM DIPAKAI</span>
                             @endif
                         </td>
+
                         <td>
                             <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                                <a href="{{ route('admin.transactions.checkStatus', $trx->id) }}" class="btn btn-api" title="Cek API Status">
+                                <a href="{{ route('admin.transactions.checkStatus', $trx->id) }}" class="btn btn-api" title="Cek API Status Midtrans">
                                     <i class="fas fa-sync"></i> API
                                 </a>
 
                                 @if($trx->status == 'pending')
-                                <a href="{{ route('admin.transactions.mockPay', $trx->id) }}" class="btn btn-api" style="color: #166534;" title="Bayar (Mock)">
+                                <a href="{{ route('admin.transactions.mockPay', $trx->id) }}" class="btn btn-api" style="color: #166534;" title="Bayar (Simulasi)">
                                     <i class="fas fa-money-bill"></i>
                                 </a>
                                 @endif
 
-                                <button onclick="viewTicket('{{ $trx->ticket_code }}', '{{ $trx->customer_name }}')" class="btn btn-api" title="Lihat E-Ticket">
+                                <button onclick="viewTicket('{{ $trx->ticket_code }}', '{{ $trx->user->name ?? $trx->customer_name }}')" class="btn btn-api" title="Lihat E-Ticket">
                                     <i class="fas fa-qrcode"></i>
                                 </button>
 
@@ -196,6 +212,10 @@
                     @endforelse
                 </tbody>
             </table>
+            
+            <div style="margin-top: 20px;">
+                {{ $transactions->links() }}
+            </div>
         </div>
     </div>
 
