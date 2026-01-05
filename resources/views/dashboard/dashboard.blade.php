@@ -342,11 +342,18 @@
                 </a>
             @endif
 
-            <!-- MODUL 5: LINK TRANSAKSI -->
-            <a href="{{ route('admin.transactions.index') }}" 
-               class="nav-item {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
-                <i class="fas fa-ticket-alt"></i> Transaksi & Tiket
-            </a>
+            <!-- MODUL 5: LINK TRANSAKSI DINAMIS -->
+            @if(Auth::user()->role === 'admin')
+                <a href="{{ route('admin.transactions.index') }}" 
+                   class="nav-item {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+                    <i class="fas fa-ticket-alt"></i> Kelola Transaksi
+                </a>
+            @else
+                <a href="{{ route('user.transactions.index') }}" 
+                   class="nav-item {{ request()->routeIs('user.transactions.*') ? 'active' : '' }}">
+                    <i class="fas fa-history"></i> Tiket Saya
+                </a>
+            @endif
 
             <a href="#" class="nav-item"><i class="fas fa-store"></i> Tenant & Sponsor</a>
             <a href="#" class="nav-item"><i class="fas fa-certificate"></i> Sertifikat & Feedback</a>
@@ -381,14 +388,14 @@
                         <div class="dropdown-divider"></div>
                     @endif
                     @if(Auth::user()->role === 'admin')
-                        <form method="POST" action="{{ route('admin.logout') }}" style="display: block;">
+                        <form method="POST" action="{{ route('logout') }}" style="display: block;">
                             @csrf
                             <button type="submit" onclick="closeDropdown()">
                                 <i class="fas fa-sign-out-alt"></i> Keluar
                             </button>
                         </form>
                     @else
-                        <form method="POST" action="{{ route('user.logout') }}" style="display: block;">
+                        <form method="POST" action="{{ route('logout') }}" style="display: block;">
                             @csrf
                             <button type="submit" onclick="closeDropdown()">
                                 <i class="fas fa-sign-out-alt"></i> Keluar
@@ -408,22 +415,22 @@
             <div class="stat-card">
                 <div class="stat-icon" style="background: #3b82f6;"><i class="fas fa-ticket-alt"></i></div>
                 <h4>Total Transaksi</h4>
-                <div class="number">124</div>
+                <div class="number">{{ $stats['total'] }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background: #22c55e;"><i class="fas fa-check-double"></i></div>
                 <h4>Lunas</h4>
-                <div class="number">98</div>
+                <div class="number">{{ $stats['success'] }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background: #a855f7;"><i class="fas fa-clock"></i></div>
                 <h4>Pending</h4>
-                <div class="number">26</div>
+                <div class="number">{{ $stats['pending'] }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon" style="background: #ef4444;"><i class="fas fa-exclamation-triangle"></i></div>
                 <h4>Gagal</h4>
-                <div class="number">5</div>
+                <div class="number">{{ $stats['failed'] }}</div>
             </div>
         </div>
 

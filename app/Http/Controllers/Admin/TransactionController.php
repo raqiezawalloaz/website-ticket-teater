@@ -75,8 +75,8 @@ class TransactionController extends Controller
             $total = 50000 * $request->quantity;
 
             $transaction = Transaction::create([
-                'user_id'          => Auth::id(), // Relasi 1
-                'event_id'         => $request->event_id, // Relasi 2
+                'user_id'      => Auth::id(), // Relasi 1
+                'event_id'     => $request->event_id, // Relasi 2
                 'reference_number' => 'TRX-' . time(),
                 'customer_name'    => $request->customer_name,
                 'customer_email'   => $request->customer_email,

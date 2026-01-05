@@ -258,7 +258,20 @@
         <nav>
             <a href="{{ route('dashboard') }}" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
             <a href="{{ route('events.index') }}" class="nav-item active"><i class="fas fa-calendar-alt"></i> Event & Kategori</a>
-            <a href="#" class="nav-item"><i class="fas fa-ticket-alt"></i> Transaksi & Tiket</a>
+            
+            <!-- MODUL TRANSAKSI: Dinamis berdasarkan Role -->
+            @if(Auth::user()->role === 'admin')
+                <a href="{{ route('admin.transactions.index') }}" 
+                   class="nav-item {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+                    <i class="fas fa-ticket-alt"></i> Kelola Transaksi
+                </a>
+            @else
+                <a href="{{ route('user.transactions.index') }}" 
+                   class="nav-item {{ request()->routeIs('user.transactions.*') ? 'active' : '' }}">
+                    <i class="fas fa-history"></i> Tiket Saya
+                </a>
+            @endif
+            
             <a href="#" class="nav-item"><i class="fas fa-store"></i> Tenant & Sponsor</a>
             <a href="#" class="nav-item"><i class="fas fa-certificate"></i> Sertifikat & Feedback</a>
         </nav>
@@ -279,7 +292,7 @@
                         <div class="avatar">{{ substr(Auth::user()->name, 0, 1) }}</div>
                     </button>
                     <div class="dropdown-menu" id="profileDropdown">
-                        <form method="POST" action="{{ route('user.logout') }}" style="display: block;">
+                        <form method="POST" action="{{ route('logout') }}" style="display: block;">
                             @csrf
                             <button type="submit" onclick="closeDropdown()">
                                 <i class="fas fa-sign-out-alt"></i> Keluar
@@ -288,7 +301,7 @@
                     </div>
                 @else
                     <div style="display: flex; gap: 10px;">
-                        <a href="{{ route('user.login') }}" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">Login</a>
+                        <a href="{{ route('login') }}" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">Login</a>
                         <span style="color: #e2e8f0;">|</span>
                         <a href="{{ route('register') }}" style="color: var(--primary-blue); text-decoration: none; font-weight: 600;">Daftar</a>
                     </div>
@@ -328,26 +341,40 @@
                 @if($event->ticketCategories->count() > 0)
                     <div style="display: grid; gap: 15px;">
                         @foreach($event->ticketCategories as $category)
-                            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid var(--primary-blue);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <div style="font-weight: bold; margin-bottom: 4px;">{{ $category->name }}</div>
-                                        <div style="font-size: 0.9rem; color: #64748b;">
-                                            Tersedia: <strong>{{ $category->quantity }}</strong> tiket
-                                        </div>
+                            <div style="background: #f8fafc; padding: 20px; border-radius: 8px; border-left: 4px solid var(--primary-blue); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <div style="font-weight: bold; margin-bottom: 4px;">{{ $category->name }}</div>
+                                    <div style="font-size: 0.9rem; color: #64748b;">
+                                        Tersedia: <strong>{{ $category->quantity }}</strong> tiket
                                     </div>
-                                    <div style="text-align: right;">
+                                </div>
+                                <div style="text-align: right; display: flex; align-items: center; gap: 15px;">
+                                    <div>
                                         <div style="font-size: 1.2rem; font-weight: bold; color: var(--primary-blue);">
                                             Rp {{ number_format($category->price, 0, ',', '.') }}
                                         </div>
                                     </div>
+                                    <!-- FORM CHECKOUT DINAMIS PER KATEGORI -->
+                                    @auth
+                                        <form action="{{ route('checkout.process') }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            <input type="hidden" name="event_id" value="{{ $event->id }}">
+                                            <input type="hidden" name="ticket_category_id" value="{{ $category->id }}">
+                                            <input type="hidden" name="total_amount" value="{{ $category->price }}">
+                                            
+                                            <button type="submit" class="btn-buy" style="background: #0037a5; color: white; padding: 10px 20px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                                                <i class="fas fa-ticket-alt"></i> Beli Tiket
+                                            </button>
+                                        </form>
+                                    @else
+                                        <a href="{{ route('login') }}" class="btn-buy" style="background: #0037a5; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                                            <i class="fas fa-sign-in-alt"></i> Login untuk Beli
+                                        </a>
+                                    @endauth
                                 </div>
                             </div>
                         @endforeach
                     </div>
-                    <button class="btn-buy" onclick="alert('Fitur pembelian tiket akan segera hadir')">
-                        <i class="fas fa-ticket-alt"></i> Beli Tiket
-                    </button>
                 @else
                     <div style="background: #f8fafc; padding: 20px; border-radius: 8px; text-align: center; color: #64748b;">
                         <i class="fas fa-info-circle"></i> Kategori tiket tidak tersedia untuk event ini
