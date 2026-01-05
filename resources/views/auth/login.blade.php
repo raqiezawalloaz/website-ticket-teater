@@ -152,7 +152,7 @@
             </div>
         @endif
 
-        <form action="{{ route('admin.login.store') }}" method="POST">
+        <form action="/login" method="POST">
             @csrf
 
             <div class="form-group @error('email') has-error @enderror">

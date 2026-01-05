@@ -12,6 +12,8 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\TicketCategoryController;
 use App\Http\Controllers\EventController as PublicEventController;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\SponsorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,6 +42,10 @@ Route::middleware(['web'])->group(function () {
     // Public Events (User bisa lihat event tanpa login)
     Route::get('/events', [PublicEventController::class, 'index'])->name('events.index');
     Route::get('/events/{event}', [PublicEventController::class, 'show'])->name('events.show');
+
+    // Tenant & Sponsor Public
+    Route::get('/tenants', [App\Http\Controllers\PublicTenantController::class, 'index'])->name('public.tenants.index');
+    Route::get('/sponsors', [App\Http\Controllers\PublicSponsorController::class, 'index'])->name('public.sponsors.index');
 
 
     // =====================
@@ -87,6 +93,16 @@ Route::middleware(['web'])->group(function () {
 
             // USER MANAGEMENT
             Route::resource('users', AdminUserController::class);
+
+            // =====================
+            // TENANT MANAGEMENT
+            // =====================
+            Route::resource('tenants', TenantController::class);
+
+            // =====================
+            // SPONSOR MANAGEMENT
+            // =====================
+            Route::resource('sponsors', SponsorController::class);
 
             // =====================
             // TRANSACTIONS MODULE
