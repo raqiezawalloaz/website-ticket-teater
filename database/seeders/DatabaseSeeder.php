@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             TransactionSeeder::class,
             // Jika temanmu punya seeder lain, tambahkan di sini
-
+        ])
         $this->call([
             AdminSeeder::class,
             EventSeeder::class,

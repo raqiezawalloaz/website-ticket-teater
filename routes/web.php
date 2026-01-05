@@ -14,6 +14,8 @@ use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\TicketCategoryController;
 use App\Http\Controllers\EventController as PublicEventController;
 use App\Http\Middleware\EnsureUserIsAdmin;
+use App\Http\Controllers\Admin\TenantController;
+use App\Http\Controllers\Admin\SponsorController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,29 +43,33 @@ Route::middleware(['web'])->group(function () {
     Route::get('/events', [PublicEventController::class, 'index'])->name('events.index');
     Route::get('/events/{event}', [PublicEventController::class, 'show'])->name('events.show');
 
+    // Tenant & Sponsor Public
+    Route::get('/tenants', [App\Http\Controllers\PublicTenantController::class, 'index'])->name('public.tenants.index');
+    Route::get('/sponsors', [App\Http\Controllers\PublicSponsorController::class, 'index'])->name('public.sponsors.index');
+
 
     // =====================
     // 2. LOGGED IN USER AREA
     // =====================
     Route::middleware(['auth'])->group(function () {
         
-        // Dashboard User (Controller akan cek jika Admin -> redirect ke admin dashboard)
+        // Dashboard Dinamis (Redirect Admin/User otomatis)
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // --- RIWAYAT TRANSAKSI USER (POV USER) ---
-        // User hanya bisa melihat transaksi mereka sendiri
         Route::get('/my-transactions', [UserTransactionController::class, 'index'])->name('user.transactions.index');
         Route::get('/my-transactions/{id}', [UserTransactionController::class, 'show'])->name('user.transactions.show');
         Route::get('/my-transactions/{id}/download', [UserTransactionController::class, 'downloadTicket'])->name('user.transactions.download');
 
         // --- CHECKOUT & PEMBAYARAN ---
-        // Route untuk memproses checkout dan membuat transaksi
         Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
-        
-        // Halaman Finish (Redirect dari Midtrans)
         Route::get('/payment/finish', function() {
             return view('user.payment_finish'); 
         })->name('payment.finish');
+
+        // --- Feedback & Certificate User ---
+        Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+        Route::get('/certificates/{transactionId}', [App\Http\Controllers\CertificateController::class, 'download'])->name('certificates.download');
     });
 
 
@@ -72,32 +78,47 @@ Route::middleware(['web'])->group(function () {
     // =====================
     Route::middleware(['auth', EnsureUserIsAdmin::class])
         ->prefix('admin')
-        ->name('admin.') // Prefix Nama Route (misal: admin.dashboard)
+        ->name('admin.')
         ->group(function () {
 
             // Dashboard Admin
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-            // Events
-            Route::resource('events', AdminEventController::class)->except(['show']);
-            Route::get('events/{event}/export', [AdminEventController::class, 'exportRundown'])
-                ->name('events.export');
+            // EVENT MANAGEMENT
+            Route::resource('events', AdminEventController::class);
+            Route::get('events/{event}/export', [AdminEventController::class, 'exportRundown'])->name('events.export');
 
-            // Ticket Categories
+            // TICKET CATEGORIES (Sub-resource dari Events)
             Route::prefix('events/{event}')
                 ->name('events.')
                 ->group(function () {
                     Route::resource('categories', TicketCategoryController::class)->except(['show']);
                 });
 
-            // User Management
+            // USER MANAGEMENT
             Route::resource('users', AdminUserController::class);
 
-            // Transactions Module (Admin POV)
+            // TENANT & SPONSOR MANAGEMENT
+            Route::resource('tenants', TenantController::class);
+            Route::resource('sponsors', SponsorController::class);
+
+            // CERTIFICATE MANAGEMENT (Admin)
+            Route::prefix('certificates')->name('certificates.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\CertificateController::class, 'index'])->name('index');
+                Route::get('/event/{event}', [App\Http\Controllers\Admin\CertificateController::class, 'show'])->name('show');
+                Route::get('/download/{transactionId}', [App\Http\Controllers\Admin\CertificateController::class, 'download'])->name('download');
+            });
+
+            // FEEDBACK MANAGEMENT (Admin)
+            Route::get('feedbacks', [App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('feedbacks.index');
+            Route::get('feedbacks/export-pdf', [App\Http\Controllers\Admin\FeedbackController::class, 'exportPdf'])->name('feedbacks.exportPdf');
+
+            // TRANSACTIONS MODULE (Admin POV)
             Route::prefix('transactions')->name('transactions.')->group(function () {
                 Route::get('/', [AdminTransactionController::class, 'index'])->name('index');
                 Route::get('/export-pdf', [AdminTransactionController::class, 'exportPdf'])->name('exportPdf');
                 
+                // Fitur Verifikasi & Monitoring
                 Route::get('/{id}/mock-pay', [AdminTransactionController::class, 'mockPayment'])->name('mockPay');
                 Route::post('/{id}/check-in', [AdminTransactionController::class, 'checkIn'])->name('checkIn');
                 Route::get('/{id}/check', [AdminTransactionController::class, 'checkStatus'])->name('checkStatus');

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 
 class AdminSeeder extends Seeder
 {
@@ -13,7 +14,7 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        User::firstOrCreate([
+        $admin = User::updateOrCreate([
             'email' => 'admin@gmail.com',
         ], [
             'name' => 'Admin Teater',
@@ -21,12 +22,16 @@ class AdminSeeder extends Seeder
             'role' => 'admin',
         ]);
 
-        User::firstOrCreate([
+        $user = User::updateOrCreate([
             'email' => 'user@gmail.com',
         ], [
             'name' => 'User Teater',
             'password' => Hash::make('password123'),
             'role' => 'user',
         ]);
+
+        // Log to verify seeder execution
+        Log::info("Admin created or updated: " . $admin->email);
+        Log::info("User created or updated: " . $user->email);
     }
 }
