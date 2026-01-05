@@ -64,6 +64,12 @@ Route::middleware(['web'])->group(function () {
         Route::get('/payment/finish', function() {
             return view('user.payment_finish'); // Pastikan view ini ada atau ganti redirect
         })->name('payment.finish');
+
+        // --- Feedback ---
+        Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
+
+        // --- Certificate ---
+        Route::get('/certificates/{transactionId}', [App\Http\Controllers\CertificateController::class, 'download'])->name('certificates.download');
     });
 
 
@@ -80,7 +86,7 @@ Route::middleware(['web'])->group(function () {
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
             // EVENT MANAGEMENT
-            Route::resource('events', AdminEventController::class)->except(['show']);
+            Route::resource('events', AdminEventController::class);
             Route::get('events/{event}/export', [AdminEventController::class, 'exportRundown'])
                 ->name('events.export');
 
@@ -103,6 +109,21 @@ Route::middleware(['web'])->group(function () {
             // SPONSOR MANAGEMENT
             // =====================
             Route::resource('sponsors', SponsorController::class);
+
+            // =====================
+            // CERTIFICATE MANAGEMENT (Admin)
+            // =====================
+            Route::prefix('certificates')->name('certificates.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\CertificateController::class, 'index'])->name('index');
+                Route::get('/event/{event}', [App\Http\Controllers\Admin\CertificateController::class, 'show'])->name('show');
+                Route::get('/download/{transactionId}', [App\Http\Controllers\Admin\CertificateController::class, 'download'])->name('download');
+            });
+
+            // =====================
+            // FEEDBACK & CERTIFICATE MANAGEMENT
+            // =====================
+            Route::get('feedbacks', [App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('feedbacks.index');
+            Route::get('feedbacks/export-pdf', [App\Http\Controllers\Admin\FeedbackController::class, 'exportPdf'])->name('feedbacks.exportPdf');
 
             // =====================
             // TRANSACTIONS MODULE

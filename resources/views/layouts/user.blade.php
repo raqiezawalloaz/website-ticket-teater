@@ -70,17 +70,16 @@
             </a>
             
             <!-- User Transactions (My Tickets) - Assuming route exists or placeholder -->
-            <a href="#" class="nav-item">
-                <i class="fas fa-ticket-alt"></i> Tiket Saya
+            <a href="{{ route('dashboard') }}" class="nav-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <i class="fas fa-ticket-alt"></i> Tiket Saya & Sertifikat
             </a>
             
-            <a href="#" class="nav-item">
+            <a href="{{ route('public.tenants.index') }}" class="nav-item {{ request()->routeIs('public.tenants.*') ? 'active' : '' }}">
                 <i class="fas fa-store"></i> Tenant & Sponsor
             </a>
             
-            <a href="#" class="nav-item">
-                <i class="fas fa-certificate"></i> Sertifikat & Feedback
-            </a>
+            <!-- Removed redundant Certification link as it's part of Dashboard/Tiket Saya now -->
+            <!-- If specific separate page desired, separate route needed, but Dashboard handles it nicely -->
         </nav>
     </div>
 
