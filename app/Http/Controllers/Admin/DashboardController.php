@@ -10,6 +10,18 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        return view('dashboard.dashboard');
+        if (auth()->user()->isAdmin()) {
+            return view('dashboard.dashboard');
+        }
+
+        // Get User Transactions for "My Events"
+        $transactions = \App\Models\Transaction::where('user_id', auth()->id())
+            ->with(['event', 'event.feedbacks' => function($query) {
+                $query->where('user_id', auth()->id());
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('user.dashboard', compact('transactions'));
     }
 }

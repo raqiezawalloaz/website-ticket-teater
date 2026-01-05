@@ -32,7 +32,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('admin.events.update', $event->id) }}" method="POST">
+<form action="{{ route('admin.events.update', $event->id) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     
@@ -67,6 +67,18 @@
         <div class="form-group">
             <label>Lokasi / Link Meeting</label>
             <input type="text" name="lokasi" value="{{ old('lokasi', $event->lokasi) }}">
+        </div>
+
+        <div class="form-group">
+            <label>Background Sertifikat (Opsional)</label>
+            @if($event->certificate_background)
+                <div style="margin-bottom: 10px;">
+                    <img src="{{ asset('storage/' . $event->certificate_background) }}" alt="Current Certificate" style="max-width: 200px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <p style="font-size: 0.8rem; color: #64748b;">Background saat ini</p>
+                </div>
+            @endif
+            <input type="file" name="certificate_background" accept="image/*">
+            <small style="color: #64748b; font-size: 0.8rem;">Upload gambar baru (png/jpg/jpeg) max 2MB untuk mengganti background.</small>
         </div>
 
         <div style="margin-top: 20px;">

@@ -104,6 +104,42 @@
         .nav-tab:hover { color: var(--primary-blue); }
         .nav-tab.active { color: var(--primary-blue); border-bottom-color: var(--primary-blue); }
 
+        /* Submenu Styling */
+        .nav-group { margin-bottom: 5px; }
+        .nav-item-header {
+            padding: 12px 15px; border-radius: 8px; color: #64748b;
+            text-decoration: none; display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: 0.3s;
+        }
+        .nav-item-header:hover { background: #f1f5f9; color: var(--primary-blue); }
+        .nav-item-header.active { background: #eff6ff; color: var(--primary-blue); font-weight: 600; }
+        
+        .nav-item-content { display: flex; align-items: center; gap: 12px; }
+
+        .submenu {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
+            padding-left: 15px;
+        }
+        .submenu.open { max-height: 500px; transition: max-height 0.3s ease-in; }
+        
+        .submenu a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 15px 10px 32px; /* Indent child */
+            font-size: 0.9rem; color: #64748b; text-decoration: none;
+            border-radius: 8px; margin-top: 2px;
+            position: relative;
+        }
+        .submenu a::before {
+            content: ''; position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+            width: 4px; height: 4px; background: #cbd5e1; border-radius: 50%;
+        }
+        .submenu a:hover { color: var(--primary-blue); background: #f8fafc; }
+        .submenu a.active { color: var(--primary-blue); background: white; font-weight: 500; }
+        .submenu a.active::before { background: var(--primary-blue); }
+
+        .arrow-icon { transition: transform 0.3s; font-size: 0.8rem; }
+        .nav-group.active .arrow-icon { transform: rotate(180deg); }
+
     </style>
     @yield('styles')
 </head>
@@ -125,14 +161,14 @@
                     <i class="fas fa-ticket-alt"></i> Transaksi & Tiket
                 </a>
                 
-                <!-- Combined Tenant & Sponsor Menu -->
                 <a href="{{ route('admin.tenants.index') }}" class="nav-item {{ request()->routeIs('admin.tenants.*') || request()->routeIs('admin.sponsors.*') ? 'active' : '' }}">
                     <i class="fas fa-store"></i> Tenant & Sponsor
                 </a>
                 
-                <a href="#" class="nav-item">
+                <a href="{{ route('admin.certificates.index') }}" class="nav-item {{ request()->routeIs('admin.certificates.*') || request()->routeIs('admin.feedbacks.*') ? 'active' : '' }}">
                     <i class="fas fa-certificate"></i> Sertifikat & Feedback
                 </a>
+
             @else
                 <a href="{{ route('events.index') }}" class="nav-item">
                      <i class="fas fa-calendar-alt"></i> Event & Kategori
@@ -184,6 +220,14 @@
     </div>
 
     <script>
+        function toggleSubmenu(header) {
+            const group = header.parentElement;
+            const submenu = group.querySelector('.submenu');
+            
+            group.classList.toggle('active');
+            submenu.classList.toggle('open');
+        }
+
         function toggleDropdown() {
             document.getElementById('profileDropdown').classList.toggle('active');
         }

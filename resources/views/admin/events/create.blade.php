@@ -55,7 +55,7 @@
     </div>
 @endif
 
-<form action="{{ route('admin.events.store') }}" method="POST">
+<form action="{{ route('admin.events.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
     
     <div class="card">
@@ -89,6 +89,12 @@
         <div class="form-group">
             <label>Lokasi / Link Meeting</label>
             <input type="text" name="lokasi" value="{{ old('lokasi') }}" placeholder="Masukkan lokasi atau link meeting">
+        </div>
+
+        <div class="form-group">
+            <label>Background Sertifikat (Opsional)</label>
+            <input type="file" name="certificate_background" accept="image/*">
+            <small style="color: #64748b; font-size: 0.8rem;">Upload gambar (png/jpg/jpeg) min 2MB. Kosongkan untuk menggunakan template default.</small>
         </div>
 
         <div style="margin-top: 20px;">
