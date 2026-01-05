@@ -7,7 +7,9 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\UserAuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
-use App\Http\Controllers\Admin\TransactionController; // Kita pakai Controller Hybrid tadi
+use App\Http\Controllers\Admin\TransactionController as AdminTransactionController;
+use App\Http\Controllers\User\TransactionController as UserTransactionController;
+use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\TicketCategoryController;
 use App\Http\Controllers\EventController as PublicEventController;
@@ -27,19 +29,17 @@ Route::middleware(['web'])->group(function () {
     // 1. GUEST / PUBLIC AREA
     // =====================
     
-    // Redirect root ke login (opsional, bisa diganti ke landing page)
     Route::get('/', fn () => redirect('/login'));
 
-    // Auth: Login & Logout
-    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login'); // Name disesuaikan standar Laravel
+    // Auth Routes
+    Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.store');
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-    // Auth: Register
     Route::get('/register', [UserAuthController::class, 'showRegisterForm'])->name('register');
     Route::post('/register', [UserAuthController::class, 'register'])->name('register.store');
 
-    // Public Events (User bisa lihat event tanpa login)
+    // Public Events
     Route::get('/events', [PublicEventController::class, 'index'])->name('events.index');
     Route::get('/events/{event}', [PublicEventController::class, 'show'])->name('events.show');
 
@@ -53,22 +53,22 @@ Route::middleware(['web'])->group(function () {
     // =====================
     Route::middleware(['auth'])->group(function () {
         
-        // Dashboard User Biasa
+        // Dashboard Dinamis (Redirect Admin/User otomatis)
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-        // --- RUTE PENTING: CHECKOUT / PEMBAYARAN USER ---
-        // Ini rute untuk memproses form "Beli Tiket" -> ke Midtrans
-        Route::post('/checkout', [TransactionController::class, 'checkout'])->name('checkout');
-        
-        // Halaman Finish (Opsional: redirect setelah bayar sukses)
+        // --- RIWAYAT TRANSAKSI USER (POV USER) ---
+        Route::get('/my-transactions', [UserTransactionController::class, 'index'])->name('user.transactions.index');
+        Route::get('/my-transactions/{id}', [UserTransactionController::class, 'show'])->name('user.transactions.show');
+        Route::get('/my-transactions/{id}/download', [UserTransactionController::class, 'downloadTicket'])->name('user.transactions.download');
+
+        // --- CHECKOUT & PEMBAYARAN ---
+        Route::post('/checkout', [CheckoutController::class, 'process'])->name('checkout.process');
         Route::get('/payment/finish', function() {
-            return view('user.payment_finish'); // Pastikan view ini ada atau ganti redirect
+            return view('user.payment_finish'); 
         })->name('payment.finish');
 
-        // --- Feedback ---
+        // --- Feedback & Certificate User ---
         Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'store'])->name('feedback.store');
-
-        // --- Certificate ---
         Route::get('/certificates/{transactionId}', [App\Http\Controllers\CertificateController::class, 'download'])->name('certificates.download');
     });
 
@@ -78,19 +78,17 @@ Route::middleware(['web'])->group(function () {
     // =====================
     Route::middleware(['auth', EnsureUserIsAdmin::class])
         ->prefix('admin')
-        ->name('admin.') // Semua route di sini diawali "admin."
+        ->name('admin.')
         ->group(function () {
 
             // Dashboard Admin
-            // (Note: Jika controller dashboard sama, pastikan logic di dalamnya membedakan view admin/user)
             Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
             // EVENT MANAGEMENT
             Route::resource('events', AdminEventController::class);
-            Route::get('events/{event}/export', [AdminEventController::class, 'exportRundown'])
-                ->name('events.export');
+            Route::get('events/{event}/export', [AdminEventController::class, 'exportRundown'])->name('events.export');
 
-            // TICKET CATEGORIES (Nested Resource)
+            // TICKET CATEGORIES (Sub-resource dari Events)
             Route::prefix('events/{event}')
                 ->name('events.')
                 ->group(function () {
@@ -100,54 +98,33 @@ Route::middleware(['web'])->group(function () {
             // USER MANAGEMENT
             Route::resource('users', AdminUserController::class);
 
-            // =====================
-            // TENANT MANAGEMENT
-            // =====================
+            // TENANT & SPONSOR MANAGEMENT
             Route::resource('tenants', TenantController::class);
-
-            // =====================
-            // SPONSOR MANAGEMENT
-            // =====================
             Route::resource('sponsors', SponsorController::class);
 
-            // =====================
             // CERTIFICATE MANAGEMENT (Admin)
-            // =====================
             Route::prefix('certificates')->name('certificates.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Admin\CertificateController::class, 'index'])->name('index');
                 Route::get('/event/{event}', [App\Http\Controllers\Admin\CertificateController::class, 'show'])->name('show');
                 Route::get('/download/{transactionId}', [App\Http\Controllers\Admin\CertificateController::class, 'download'])->name('download');
             });
 
-            // =====================
-            // FEEDBACK & CERTIFICATE MANAGEMENT
-            // =====================
+            // FEEDBACK MANAGEMENT (Admin)
             Route::get('feedbacks', [App\Http\Controllers\Admin\FeedbackController::class, 'index'])->name('feedbacks.index');
             Route::get('feedbacks/export-pdf', [App\Http\Controllers\Admin\FeedbackController::class, 'exportPdf'])->name('feedbacks.exportPdf');
 
-            // =====================
-            // TRANSACTIONS MODULE
-            // =====================
+            // TRANSACTIONS MODULE (Admin POV)
             Route::prefix('transactions')->name('transactions.')->group(function () {
+                Route::get('/', [AdminTransactionController::class, 'index'])->name('index');
+                Route::get('/export-pdf', [AdminTransactionController::class, 'exportPdf'])->name('exportPdf');
                 
-                // List Transaksi
-                Route::get('/', [TransactionController::class, 'index'])->name('index');
+                // Fitur Verifikasi & Monitoring
+                Route::get('/{id}/mock-pay', [AdminTransactionController::class, 'mockPayment'])->name('mockPay');
+                Route::post('/{id}/check-in', [AdminTransactionController::class, 'checkIn'])->name('checkIn');
+                Route::get('/{id}/check', [AdminTransactionController::class, 'checkStatus'])->name('checkStatus');
                 
-                // Export PDF
-                Route::get('/export-pdf', [TransactionController::class, 'exportPdf'])->name('exportPdf');
-
-                // Aksi Transaksi (Mockup & Real)
-                Route::get('/{id}/mock-pay', [TransactionController::class, 'mockPayment'])->name('mockPay');
-                Route::post('/{id}/check-in', [TransactionController::class, 'checkIn'])->name('checkIn');
-                
-                // --- Rute Check Status (Sesuai Tips Kamu) ---
-                // URL: /admin/transactions/{id}/check
-                Route::get('/{id}/check', [TransactionController::class, 'checkStatus'])->name('checkStatus');
-
-                // Update Status Manual & Delete
-                Route::put('/{id}/status', [TransactionController::class, 'updateStatus'])->name('updateStatus');
-                Route::delete('/{id}', [TransactionController::class, 'destroy'])->name('destroy');
+                Route::put('/{id}/status', [AdminTransactionController::class, 'updateStatus'])->name('updateStatus');
+                Route::delete('/{id}', [AdminTransactionController::class, 'destroy'])->name('destroy');
             });
-
         });
 });

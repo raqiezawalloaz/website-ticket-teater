@@ -110,7 +110,20 @@
         <nav>
             <a href="{{ route('dashboard') }}" class="nav-item"><i class="fas fa-th-large"></i> Dashboard</a>
             <a href="{{ route('events.index') }}" class="nav-item active"><i class="fas fa-calendar-alt"></i> Event & Kategori</a>
-            <a href="#" class="nav-item"><i class="fas fa-ticket-alt"></i> Transaksi & Tiket</a>
+            
+            <!-- MODUL TRANSAKSI: Dinamis berdasarkan Role -->
+            @if(Auth::user()->role === 'admin')
+                <a href="{{ route('admin.transactions.index') }}" 
+                   class="nav-item {{ request()->routeIs('admin.transactions.*') ? 'active' : '' }}">
+                    <i class="fas fa-ticket-alt"></i> Kelola Transaksi
+                </a>
+            @else
+                <a href="{{ route('user.transactions.index') }}" 
+                   class="nav-item {{ request()->routeIs('user.transactions.*') ? 'active' : '' }}">
+                    <i class="fas fa-history"></i> Tiket Saya
+                </a>
+            @endif
+            
             <a href="#" class="nav-item"><i class="fas fa-store"></i> Tenant & Sponsor</a>
             <a href="#" class="nav-item"><i class="fas fa-certificate"></i> Sertifikat & Feedback</a>
         </nav>

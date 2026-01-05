@@ -57,4 +57,23 @@ class MidtransService
             throw new \Exception("Data transaksi belum ada di Midtrans.");
         }
     }
+
+    /**
+     * Verifikasi Signature dari Midtrans (Keamanan Webhook)
+     * 
+     * Midtrans mengirimkan signature untuk memastikan request benar-benar dari mereka,
+     * bukan dari pihak ketiga yang mencoba memalsukan notifikasi.
+     */
+    public function verifySignature(array $notification): bool
+    {
+        $orderId = $notification['order_id'] ?? null;
+        $statusCode = $notification['status_code'] ?? null;
+        $grossAmount = $notification['gross_amount'] ?? null;
+        $signature = $notification['signature_key'] ?? null;
+
+        // Signature dibuat dengan hash SHA512(order_id + status_code + gross_amount + server_key)
+        $hash = hash('sha512', $orderId . $statusCode . $grossAmount . Config::$serverKey);
+
+        return hash_equals($hash, $signature ?? '');
+    }
 }

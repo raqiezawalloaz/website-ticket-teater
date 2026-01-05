@@ -214,7 +214,7 @@
         </form>
 
         <div class="footer-text">
-            Sudah memiliki akun? <a href="{{ route('admin.login') }}">Login di sini</a>
+            Sudah memiliki akun? <a href="{{ route('login') }}">Login di sini</a>
         </div>
 
         <div class="footer-text">
