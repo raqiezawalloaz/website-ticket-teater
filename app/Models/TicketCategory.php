@@ -22,5 +22,19 @@ class TicketCategory extends Model
     {
         return $this->belongsTo(\App\Models\Event::class);
     }
+
+    public function transactions()
+    {
+        return $this->hasMany(\App\Models\Transaction::class);
+    }
+
+    public function getRemainingStockAttribute()
+    {
+        $sold = $this->transactions()
+            ->whereIn('status', ['success', 'pending'])
+            ->sum('quantity');
+            
+        return max(0, $this->quantity - $sold);
+    }
 }
 

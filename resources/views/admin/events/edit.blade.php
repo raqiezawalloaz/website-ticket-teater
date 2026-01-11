@@ -69,6 +69,31 @@
             <input type="text" name="lokasi" value="{{ old('lokasi', $event->lokasi) }}">
         </div>
 
+        <div class="form-group">
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.8rem; color: #64748b; font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">Rincian Kuota Terdaftar:</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                    @php $allocated = 0; @endphp
+                    @forelse($event->ticketCategories as $cat)
+                        <div style="font-size: 0.9rem; color: #1e293b; background: white; padding: 8px 12px; border-radius: 6px; border: 1px solid #f1f5f9;">
+                            <i class="fas fa-ticket-alt" style="color: #6366f1;"></i> {{ $cat->name }}: 
+                            <strong style="color: {{ $cat->remaining_stock < 10 ? '#ef4444' : '#1e293b' }};">{{ $cat->remaining_stock }}</strong>
+                            <span style="color: #94a3b8; font-size: 0.8rem;">/ {{ $cat->quantity }} Tersedia</span>
+                        </div>
+                        @php $allocated += $cat->quantity; @endphp
+                    @empty
+                        <div style="font-size: 0.85rem; color: #94a3b8; font-style: italic;">Belum ada kategori tiket dibuat.</div>
+                    @endforelse
+                </div>
+                <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 0.85rem; color: #64748b;">
+                    Total Kapasitas Saat Ini: <strong>{{ $allocated }}</strong>
+                    <a href="{{ route('admin.events.categories.index', $event->id) }}" style="float: right; color: #6366f1; text-decoration: none; font-weight: 600;">
+                        Kelola Kategori <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <div style="margin-top: 20px;">
             <button type="submit" class="btn-primary">
                 <i class="fas fa-save"></i> Simpan Perubahan

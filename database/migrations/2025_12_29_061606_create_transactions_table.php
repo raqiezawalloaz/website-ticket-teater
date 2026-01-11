@@ -12,20 +12,22 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
-        $table->id();
-        $table->string('reference_number')->unique(); 
-        $table->string('ticket_code')->unique();
-        $table->string('customer_name');
-        $table->string('customer_email'); // Tambahkan ini (tadi di kode kamu tidak ada)
-        $table->string('event_name'); 
-        $table->string('ticket_category'); 
-        $table->string('seat_number')->nullable(); 
-        $table->integer('quantity')->default(1); // TAMBAHKAN INI (Beri default 1)
-        $table->decimal('total_price', 15, 2);
-        $table->enum('status', ['pending', 'success', 'failed'])->default('pending');
-        $table->boolean('is_checked_in')->default(false); 
-        $table->timestamps();
-    });
+            $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
+            $table->string('reference_number')->unique(); 
+            $table->string('ticket_code')->unique();
+            $table->string('customer_name');
+            $table->string('customer_email');
+            $table->string('event_name'); 
+            $table->string('ticket_category'); 
+            $table->string('seat_number')->nullable(); 
+            $table->integer('quantity')->default(1);
+            $table->decimal('total_price', 15, 2);
+            $table->enum('status', ['pending', 'success', 'failed', 'expired', 'deny'])->default('pending');
+            $table->boolean('is_checked_in')->default(false); 
+            $table->timestamps();
+        });
     }
 
     /**

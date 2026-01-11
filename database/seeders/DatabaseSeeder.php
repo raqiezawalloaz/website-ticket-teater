@@ -16,7 +16,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-       fitur-pembayaran-galih
         // 1. Buat atau update user admin default
         User::firstOrCreate(
             ['email' => 'admin@gmail.com'],
@@ -27,15 +26,13 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Memanggil Seeder lainnya (Termasuk Modul Transaksi kamu)
-        $this->call([
-            TransactionSeeder::class,
-            // Jika temanmu punya seeder lain, tambahkan di sini
-        ])
+        // 2. Memanggil Seeder lainnya
         $this->call([
             AdminSeeder::class,
+            AdminUserSeeder::class,
             EventSeeder::class,
-       main
+            TicketCategorySeeder::class,
+            TransactionSeeder::class,
         ]);
     }
 }

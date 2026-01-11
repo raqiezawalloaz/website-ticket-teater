@@ -107,7 +107,7 @@
 
                 <td>
                     <div style="font-weight: bold; color: var(--primary-blue); margin-bottom: 4px;">
-                        {{ $trx->event->title ?? 'Event Tidak Ditemukan' }}
+                        {{ $trx->event->nama_event ?? $trx->event_name ?? 'Event Tidak Ditemukan' }}
                     </div>
 
                     <span class="badge" style="background: #334155; color: white;">{{ $trx->ticket_category }}</span>

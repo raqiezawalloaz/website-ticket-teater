@@ -1,93 +1,91 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pembayaran Tiket - Teater</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+@extends('layouts.user')
+
+@section('title', 'Pembayaran Tiket')
+@section('header_title', 'Selesaikan Pembayaran')
+@section('header_subtitle', 'Satu langkah lagi untuk mendapatkan tiket Anda.')
+
+@section('styles')
+<style>
+    .payment-container { max-width: 500px; margin: 0 auto; }
+    .payment-card { 
+        background: white; border-radius: 20px; padding: 35px; 
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;
+        text-align: center;
+    }
+    .payment-icon {
+        width: 70px; height: 70px; background: #f5f3ff; color: #6366f1;
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 25px; font-size: 1.8rem;
+    }
+    .summary-box {
+        background: #f8fafc; border-radius: 16px; padding: 25px; margin: 25px 0;
+        text-align: left;
+    }
+    .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 0.95rem; }
+    .summary-row.total { border-top: 2px dashed #e2e8f0; margin-top: 15px; padding-top: 15px; font-weight: 800; font-size: 1.2rem; }
     
-    <style>
-        body { background-color: #f8f9fa; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .card { box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: none; }
-        .ticket-info { background-color: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-    </style>
-</head>
-<body>
+    .btn-pay {
+        background: #6366f1; color: white; border: none; padding: 16px; border-radius: 12px;
+        width: 100%; font-weight: 700; font-size: 1.1rem; cursor: pointer; transition: 0.3s;
+        box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+    }
+    .btn-pay:hover { background: #4f46e5; transform: translateY(-2px); }
+</style>
+@endsection
 
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-                <div class="card p-4">
-                    <div class="text-center mb-4">
-                        <h4>Konfirmasi Pembayaran</h4>
-                        <p class="text-muted">Selesaikan pembayaran untuk mendapatkan tiketmu.</p>
-                    </div>
+@section('content')
+<div class="payment-container">
+    <div class="payment-card">
+        <div class="payment-icon">
+            <i class="fas fa-wallet"></i>
+        </div>
+        
+        <h2 style="font-weight: 800; color: #1e293b;">Konfirmasi Pesanan</h2>
+        <p style="color: #64748b; font-size: 0.95rem;">Mohon periksa kembali detail pesanan Anda sebelum membayar.</p>
 
-                    <div class="ticket-info">
-                        <div class="d-flex justify-content-between">
-                            <span>Nama:</span>
-                            <strong>{{ $transaction->customer_name }}</strong>
-                        </div>
-                        <div class="d-flex justify-content-between mt-2">
-                            <span>Tiket:</span>
-                            <strong>{{ $transaction->quantity }}x {{ $transaction->ticket_category }}</strong>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between fs-5">
-                            <span>Total:</span>
-                            <strong class="text-primary">Rp {{ number_format($transaction->total_price, 0, ',', '.') }}</strong>
-                        </div>
-                    </div>
-
-                    <button id="pay-button" class="btn btn-primary btn-lg w-100">
-                        Bayar Sekarang
-                    </button>
-                    
-                    <div class="text-center mt-3">
-                        <a href="{{ url('/') }}" class="text-muted small">Batalkan Pesanan</a>
-                    </div>
-                </div>
+        <div class="summary-box">
+            <div class="summary-row">
+                <span style="color: #64748b;">Event</span>
+                <span style="font-weight: 600;">{{ $transaction->event_name }}</span>
+            </div>
+            <div class="summary-row">
+                <span style="color: #64748b;">Kategori</span>
+                <span style="font-weight: 600;">{{ $transaction->ticket_category }}</span>
+            </div>
+            <div class="summary-row">
+                <span style="color: #64748b;">Kuantitas</span>
+                <span style="font-weight: 600;">{{ $transaction->quantity }} Tiket</span>
+            </div>
+            <div class="summary-row total">
+                <span>Total Bayar</span>
+                <span style="color: #6366f1;">Rp {{ number_format($transaction->total_price, 0, ',', '.') }}</span>
             </div>
         </div>
+
+        <button id="pay-button" class="btn-pay">
+            Pay Now with Midtrans
+        </button>
+
+        <p style="margin-top: 20px; font-size: 0.85rem; color: #94a3b8;">
+            <i class="fas fa-shield-alt"></i> Transaksi terenkripsi dan aman.
+        </p>
     </div>
+</div>
 
-    <script src="https://app.sandbox.midtrans.com/snap/snap.js" 
-            data-client-key="{{ config('midtrans.client_key') }}"></script>
-
-    <script type="text/javascript">
-        // Ambil elemen tombol
-        const payButton = document.getElementById('pay-button');
-        
-        payButton.addEventListener('click', function () {
-            // Memanggil Popup Midtrans dengan Snap Token dari Controller
-            window.snap.pay('{{ $snapToken }}', {
-                
-                // Jika Berhasil (Success)
-                onSuccess: function(result) {
-                    console.log(result);
-                    // Redirect ke halaman Finish (Buat route ini nanti)
-                    window.location.href = "/payment/finish"; 
-                },
-                
-                // Jika Menunggu (Pending - misal pilih transfer ATM tapi belum bayar)
-                onPending: function(result) {
-                    console.log(result);
-                    window.location.href = "/payment/finish";
-                },
-                
-                // Jika Gagal (Error)
-                onError: function(result) {
-                    console.log(result);
-                    alert("Pembayaran Gagal atau Dibatalkan!");
-                },
-                
-                // Jika popup ditutup tanpa menyelesaikan pembayaran
-                onClose: function() {
-                    alert('Kamu menutup popup sebelum menyelesaikan pembayaran');
-                }
-            });
+<script src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="{{ config('midtrans.client_key') }}"></script>
+<script type="text/javascript">
+    document.getElementById('pay-button').addEventListener('click', function () {
+        window.snap.pay('{{ $snapToken }}', {
+            onSuccess: function(result) {
+                window.location.href = "{{ route('payment.finish') }}"; 
+            },
+            onPending: function(result) {
+                window.location.href = "{{ route('payment.finish') }}";
+            },
+            onError: function(result) {
+                alert("Pembayaran Gagal!");
+            }
         });
-    </script>
-
-</body>
-</html>
+    });
+</script>
+@endsection

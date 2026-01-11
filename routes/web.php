@@ -14,6 +14,7 @@ use App\Http\Controllers\EventController as PublicEventController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Controllers\Admin\TenantController;
 use App\Http\Controllers\Admin\SponsorController;
+use App\Http\Controllers\FeedbackController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +29,8 @@ Route::middleware(['web'])->group(function () {
     // =====================
     
     // Redirect root ke login (opsional, bisa diganti ke landing page)
-    Route::get('/', fn () => redirect('/login'));
+    // Landing Page
+    Route::get('/', [DashboardController::class, 'welcome'])->name('welcome');
 
     // Auth: Login & Logout
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login'); // Name disesuaikan standar Laravel
@@ -64,6 +66,20 @@ Route::middleware(['web'])->group(function () {
         Route::get('/payment/finish', function() {
             return view('user.payment_finish'); // Pastikan view ini ada atau ganti redirect
         })->name('payment.finish');
+
+        // Daftar Tiket Saya
+        Route::get('/tickets', [TransactionController::class, 'myTickets'])->name('user.tickets.index');
+        Route::get('/tickets/{id}/download', [TransactionController::class, 'downloadTicket'])->name('user.tickets.download');
+        Route::delete('/tickets/{id}/cancel', [TransactionController::class, 'cancel'])->name('user.tickets.cancel');
+    
+    // Payment Simulation Routes
+    Route::get('/payment/simulate/{id}', [TransactionController::class, 'showSimulation'])->name('payment.simulate');
+    Route::post('/payment/simulate/process', [TransactionController::class, 'processSimulation'])->name('payment.simulate.process');
+
+    // Feedback Routes
+    Route::get('/feedback', [FeedbackController::class, 'index'])->name('feedback.index');
+    Route::post('/feedback', [FeedbackController::class, 'store'])->name('feedback.store');
+    Route::delete('/feedback/{id}', [FeedbackController::class, 'destroy'])->name('feedback.destroy');
     });
 
 

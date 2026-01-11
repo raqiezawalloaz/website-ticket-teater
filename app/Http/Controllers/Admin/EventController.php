@@ -10,7 +10,7 @@ class EventController extends Controller
 {
     public function index()
     {
-        $events = Event::orderBy('tanggal_event', 'desc')->get();
+        $events = Event::with('ticketCategories')->orderBy('tanggal_event', 'desc')->get();
         return view('admin.events.index', compact('events'));
     }
 
@@ -26,6 +26,7 @@ class EventController extends Controller
             'deskripsi' => 'nullable|string',
             'tanggal_event' => 'required|date',
             'lokasi' => 'nullable|string|max:255',
+            'total_capacity' => 'nullable|integer|min:0',
             'status_event' => 'required|in:aktif,nonaktif',
         ]);
 
@@ -46,6 +47,7 @@ class EventController extends Controller
             'deskripsi' => 'nullable|string',
             'tanggal_event' => 'required|date',
             'lokasi' => 'nullable|string|max:255',
+            'total_capacity' => 'nullable|integer|min:0',
             'status_event' => 'required|in:aktif,nonaktif',
         ]);
 

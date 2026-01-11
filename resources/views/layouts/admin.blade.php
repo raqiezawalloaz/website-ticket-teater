@@ -130,8 +130,8 @@
                     <i class="fas fa-store"></i> Tenant & Sponsor
                 </a>
                 
-                <a href="#" class="nav-item">
-                    <i class="fas fa-certificate"></i> Sertifikat & Feedback
+                <a href="{{ route('feedback.index') }}" class="nav-item {{ request()->routeIs('feedback.*') ? 'active' : '' }}">
+                    <i class="fas fa-comment-dots"></i> Feedback
                 </a>
             @else
                 <a href="{{ route('events.index') }}" class="nav-item">

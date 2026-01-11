@@ -16,6 +16,7 @@ class Event extends Model
         'deskripsi',
         'tanggal_event',
         'lokasi',
+        'total_capacity',
         'status_event',
     ];
 

@@ -53,22 +53,22 @@
     <div class="stat-card">
         <div class="stat-icon" style="background: #3b82f6;"><i class="fas fa-ticket-alt"></i></div>
         <h4 style="color: #64748b; font-size: 0.85rem;">Total Transaksi</h4>
-        <div class="number">124</div>
+        <div class="number">{{ $stats['total'] }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon" style="background: #22c55e;"><i class="fas fa-check-double"></i></div>
         <h4 style="color: #64748b; font-size: 0.85rem;">Lunas</h4>
-        <div class="number">98</div>
+        <div class="number">{{ $stats['success'] }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon" style="background: #a855f7;"><i class="fas fa-clock"></i></div>
         <h4 style="color: #64748b; font-size: 0.85rem;">Pending</h4>
-        <div class="number">26</div>
+        <div class="number">{{ $stats['pending'] }}</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon" style="background: #ef4444;"><i class="fas fa-exclamation-triangle"></i></div>
         <h4 style="color: #64748b; font-size: 0.85rem;">Gagal</h4>
-        <div class="number">5</div>
+        <div class="number">{{ $stats['failed'] }}</div>
     </div>
 </div>
 
@@ -76,24 +76,20 @@
     <!-- Event Terbaru Panel -->
     <div class="panel">
         <h3 style="margin-bottom: 20px; font-size: 1.1rem;">Event Mendatang</h3>
-        <div class="event-item">
-            <div>
-                <div style="font-weight: bold; margin-bottom: 5px;">Teater Romeo & Juliet 2025</div>
-                <div style="font-size: 0.85rem; color: #64748b;">
-                    <i class="far fa-clock"></i> 20 Jan 2025 &nbsp; <i class="far fa-user"></i> 120 Peserta
+        @forelse($upcomingEvents as $event)
+            <div class="event-item">
+                <div>
+                    <div style="font-weight: bold; margin-bottom: 5px;">{{ $event->nama_event }}</div>
+                    <div style="font-size: 0.85rem; color: #64748b;">
+                        <i class="far fa-clock"></i> {{ $event->tanggal_event->format('d M Y') }} &nbsp; 
+                        <i class="fas fa-map-marker-alt"></i> {{ $event->lokasi }}
+                    </div>
                 </div>
+                <span class="badge">Mendatang</span>
             </div>
-            <span class="badge">Coming Soon</span>
-        </div>
-        <div class="event-item">
-            <div>
-                <div style="font-weight: bold; margin-bottom: 5px;">Workshop Akting Dasar</div>
-                <div style="font-size: 0.85rem; color: #64748b;">
-                    <i class="far fa-clock"></i> 25 Jan 2025 &nbsp; <i class="far fa-user"></i> 45 Peserta
-                </div>
-            </div>
-            <span class="badge">Coming Soon</span>
-        </div>
+        @empty
+            <p style="color: #64748b; text-align: center; padding: 20px;">Belum ada event mendatang.</p>
+        @endforelse
     </div>
 
     <!-- AKSI CEPAT ADMIN -->

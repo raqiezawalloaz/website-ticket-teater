@@ -47,6 +47,7 @@
                 <th>Nama Event</th>
                 <th>Tanggal</th>
                 <th>Lokasi</th>
+                <th>Kapasitas</th>
                 <th>Status</th>
                 <th>Aksi</th>
             </tr>
@@ -57,12 +58,27 @@
                     <td>
                         <div style="font-weight: bold; color: #1e293b;">{{ $event->nama_event }}</div>
                     </td>
-                    <td style="color: #64748b;">{{ $event->tanggal_event }}</td>
+                    <td style="color: #64748b;">{{ $event->tanggal_event->format('d M Y, H:i') }}</td>
                     <td style="color: #64748b;">{{ $event->lokasi }}</td>
+                    <td style="color: #64748b;">
+                        @foreach($event->ticketCategories as $cat)
+                            <div style="font-size: 0.75rem; white-space: nowrap; margin-bottom: 2px;">
+                                <i class="fas fa-ticket-alt" style="color: #6366f1; width: 14px;"></i> 
+                                {{ $cat->name }}: 
+                                <strong style="color: {{ $cat->remaining_stock < 10 ? '#ef4444' : '#1e293b' }};">
+                                    {{ number_format($cat->remaining_stock, 0, ',', '.') }}
+                                </strong> 
+                                <span style="color: #94a3b8;">/ {{ number_format($cat->quantity, 0, ',', '.') }}</span>
+                            </div>
+                        @endforeach
+                        @if($event->ticketCategories->isEmpty())
+                            <span style="font-size: 0.8rem; color: #94a3b8; font-style: italic;">Belum ada tiket</span>
+                        @endif
+                    </td>
                     <td>
-                        <span class="status-badge {{ $event->status_event == 'Aktif' ? 'status-success' : 'status-pending' }}">
-                            <i class="fas {{ $event->status_event == 'Aktif' ? 'fa-check-circle' : 'fa-clock' }}"></i>
-                            {{ $event->status_event }}
+                        <span class="status-badge {{ strtolower($event->status_event) == 'aktif' ? 'status-success' : 'status-pending' }}">
+                            <i class="fas {{ strtolower($event->status_event) == 'aktif' ? 'fa-check-circle' : 'fa-clock' }}"></i>
+                            {{ ucfirst($event->status_event) }}
                         </span>
                     </td>
                     <td>
@@ -80,7 +96,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="5" style="text-align: center; color: #94a3b8;">Belum ada data event tersedia.</td></tr>
+                <tr><td colspan="6" style="text-align: center; color: #94a3b8;">Belum ada data event tersedia.</td></tr>
             @endforelse
         </tbody>
     </table>
