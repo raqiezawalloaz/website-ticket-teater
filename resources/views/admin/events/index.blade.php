@@ -83,6 +83,7 @@
                     </td>
                     <td>
                         <div class="action-icons">
+                            <a href="{{ route('admin.events.show', $event) }}" title="Lihat Detail & Ulasan"><i class="fas fa-eye" style="color: #64748b;"></i></a>
                             <a href="{{ route('admin.events.edit', $event) }}" title="Edit"><i class="fas fa-edit"></i></a>
                             <a href="{{ route('admin.events.categories.index', $event) }}" title="Kategori"><i class="fas fa-list"></i></a>
                             <a href="{{ route('admin.events.export', $event) }}" title="Export"><i class="fas fa-download" style="color: #10b981;"></i></a>

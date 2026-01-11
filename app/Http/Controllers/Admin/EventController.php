@@ -14,6 +14,15 @@ class EventController extends Controller
         return view('admin.events.index', compact('events'));
     }
 
+    public function show(Event $event)
+    {
+        $event->load(['feedbacks.user', 'feedbacks' => function($q) {
+            $q->orderBy('created_at', 'desc');
+        }]);
+        
+        return view('admin.events.show', compact('event'));
+    }
+
     public function create()
     {
         return view('admin.events.create');
@@ -28,7 +37,13 @@ class EventController extends Controller
             'lokasi' => 'nullable|string|max:255',
             'total_capacity' => 'nullable|integer|min:0',
             'status_event' => 'required|in:aktif,nonaktif',
+            'certificate_background' => 'nullable|image|max:2048', // 2MB Max
         ]);
+
+        if ($request->hasFile('certificate_background')) {
+            $path = $request->file('certificate_background')->store('certificates', 'public');
+            $data['certificate_background'] = $path;
+        }
 
         Event::create($data);
 
@@ -49,7 +64,17 @@ class EventController extends Controller
             'lokasi' => 'nullable|string|max:255',
             'total_capacity' => 'nullable|integer|min:0',
             'status_event' => 'required|in:aktif,nonaktif',
+            'certificate_background' => 'nullable|image|max:2048',
         ]);
+
+        if ($request->hasFile('certificate_background')) {
+            // Delete old file if exists
+            if ($event->certificate_background) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($event->certificate_background);
+            }
+            $path = $request->file('certificate_background')->store('certificates', 'public');
+            $data['certificate_background'] = $path;
+        }
 
         $event->update($data);
 

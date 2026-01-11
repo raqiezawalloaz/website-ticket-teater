@@ -2,10 +2,10 @@
 
 @section('title', 'Dashboard')
 @section('header_title', 'Dashboard')
-@section('header_subtitle', 'Pantau penjualan tiket teater dan status pembayaran real-time.')
 
 @section('styles')
 <style>
+    /* Menggunakan style gabungan yang sudah rapi */
     .welcome-banner {
         background: linear-gradient(90deg, #2563eb 0%, #a855f7 100%);
         color: white; padding: 40px; border-radius: 16px; margin-bottom: 30px;
@@ -46,9 +46,10 @@
 @section('content')
 <div class="welcome-banner">
     <h1 style="font-size: 1.8rem; margin-bottom: 10px;">Selamat Datang, {{ Auth::user()->name }}!</h1>
-    <p style="opacity: 0.9;">Sistem Manajemen Event Terintegrasi</p>
+    <p style="opacity: 0.9;">Pantau penjualan tiket teater dan status pembayaran real-time.</p>
 </div>
 
+{{-- Memasukkan Data Dinamis dari branch Galih ke dalam UI yang rapi --}}
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon" style="background: #3b82f6;"><i class="fas fa-ticket-alt"></i></div>
@@ -73,7 +74,6 @@
 </div>
 
 <div class="content-grid">
-    <!-- Event Terbaru Panel -->
     <div class="panel">
         <h3 style="margin-bottom: 20px; font-size: 1.1rem;">Event Mendatang</h3>
         @forelse($upcomingEvents as $event)
@@ -92,7 +92,6 @@
         @endforelse
     </div>
 
-    <!-- AKSI CEPAT ADMIN -->
     <div class="panel">
         <h3 style="margin-bottom: 20px; font-size: 1.1rem;">Aksi Cepat Admin</h3>
         <div style="display: flex; flex-direction: column; gap: 10px;">

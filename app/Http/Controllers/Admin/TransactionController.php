@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Event;
+use App\Models\TicketCategory;
 
 class TransactionController extends Controller
 {
@@ -72,8 +74,8 @@ class TransactionController extends Controller
         ]);
 
         try {
-            $category = \App\Models\TicketCategory::findOrFail($request->ticket_category_id);
-            $event = \App\Models\Event::findOrFail($request->event_id);
+            $category = TicketCategory::findOrFail($request->ticket_category_id);
+            $event = Event::findOrFail($request->event_id);
             
             // 1. Validasi Stok Kategori Tiket
             if ($category->remaining_stock < $request->quantity) {
@@ -94,11 +96,14 @@ class TransactionController extends Controller
 
             $total = $category->price * $request->quantity;
 
+            // --- RESOLVED CONFLICT START ---
+            // Kita menggunakan versi branch 'fitur' karena menyertakan ticket_category_id
+            // dan reference_number yang lebih unik (pakai random)
             $transaction = Transaction::create([
                 'user_id'          => Auth::id(),
                 'event_id'         => $request->event_id,
-                'ticket_category_id' => $request->ticket_category_id,
-                'reference_number' => 'TRX-' . time() . '-' . rand(100, 999),
+                'ticket_category_id' => $request->ticket_category_id, // Penting untuk relasi kategori
+                'reference_number' => 'TRX-' . time() . '-' . rand(100, 999), // Mencegah duplikat key saat traffic tinggi
                 'customer_name'    => $request->customer_name,
                 'customer_email'   => $request->customer_email,
                 'event_name'       => $event->nama_event,
@@ -110,6 +115,7 @@ class TransactionController extends Controller
                 'status'           => 'pending',
                 'is_checked_in'    => false,
             ]);
+            // --- RESOLVED CONFLICT END ---
 
             try {
                 $snapToken = $this->midtransService->getSnapToken($transaction);

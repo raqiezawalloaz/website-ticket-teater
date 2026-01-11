@@ -14,7 +14,9 @@
         border: 1px solid #e2e8f0; background: #fff; font-size: 0.9rem;
     }
 
+    /* Responsif Grid */
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
 
     .btn-primary { 
         background: var(--primary-blue); color: white; border: none; 
@@ -32,7 +34,7 @@
 @endsection
 
 @section('content')
-<form action="{{ route('admin.events.update', $event->id) }}" method="POST">
+<form action="{{ route('admin.events.update', $event->id) }}" method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
     
@@ -64,11 +66,19 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Lokasi / Link Meeting</label>
-            <input type="text" name="lokasi" value="{{ old('lokasi', $event->lokasi) }}">
+        <!-- UPDATE: Menggabungkan Lokasi & Kapasitas agar konsisten dengan create -->
+        <div class="row">
+            <div class="form-group">
+                <label>Lokasi / Link Meeting</label>
+                <input type="text" name="lokasi" value="{{ old('lokasi', $event->lokasi) }}">
+            </div>
+            <div class="form-group">
+                <label>Total Kapasitas (Opsional)</label>
+                <input type="number" name="total_capacity" value="{{ old('total_capacity', $event->total_capacity) }}" placeholder="0 = Unlimited">
+            </div>
         </div>
 
+        <!-- 1. BAGIAN INFO KUOTA (Dari Branch Fitur) -->
         <div class="form-group">
             <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
                 <div style="font-size: 0.8rem; color: #64748b; font-weight: bold; margin-bottom: 8px; text-transform: uppercase;">Rincian Kuota Terdaftar:</div>
@@ -86,12 +96,25 @@
                     @endforelse
                 </div>
                 <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 0.85rem; color: #64748b;">
-                    Total Kapasitas Saat Ini: <strong>{{ $allocated }}</strong>
+                    Total Slot Tiket Dibuat: <strong>{{ $allocated }}</strong>
                     <a href="{{ route('admin.events.categories.index', $event->id) }}" style="float: right; color: #6366f1; text-decoration: none; font-weight: 600;">
                         Kelola Kategori <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
             </div>
+        </div>
+
+        <!-- 2. BAGIAN UPLOAD SERTIFIKAT (Dari Branch Main) -->
+        <div class="form-group">
+            <label>Background Sertifikat (Opsional)</label>
+            @if($event->certificate_background)
+                <div style="margin-bottom: 10px;">
+                    <img src="{{ asset('storage/' . $event->certificate_background) }}" alt="Current Certificate" style="max-width: 200px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <p style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Background saat ini</p>
+                </div>
+            @endif
+            <input type="file" name="certificate_background" accept="image/*">
+            <small style="color: #64748b; font-size: 0.8rem;">Upload gambar baru (png/jpg/jpeg) max 2MB untuk mengganti background.</small>
         </div>
 
         <div style="margin-top: 20px;">

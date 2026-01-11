@@ -18,6 +18,7 @@ class Event extends Model
         'lokasi',
         'total_capacity',
         'status_event',
+        'certificate_background',
     ];
 
     protected $casts = [
@@ -27,5 +28,15 @@ class Event extends Model
     public function ticketCategories()
     {
         return $this->hasMany(\App\Models\TicketCategory::class);
+    }
+
+    public function feedbacks()
+    {
+        return $this->hasMany(\App\Models\Feedback::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(\App\Models\Transaction::class);
     }
 }

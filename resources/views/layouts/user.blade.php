@@ -93,11 +93,12 @@
                 <i class="fas fa-calendar-alt"></i> Daftar Event
             </a>
             
-            <!-- User Transactions (My Tickets) -->
+            <!-- RESOLVED: Menggunakan route tiket yang spesifik (HEAD) tapi label digabung (MAIN) -->
             <a href="{{ route('user.tickets.index') }}" class="nav-item {{ request()->routeIs('user.tickets.index') ? 'active' : '' }}">
-                <i class="fas fa-ticket-alt"></i> Tiket Saya
+                <i class="fas fa-ticket-alt"></i> Tiket & Sertifikat
             </a>
             
+            <!-- RESOLVED: Memisahkan Tenant & Sponsor agar User lebih mudah mencari (HEAD) -->
             <a href="{{ route('public.tenants.index') }}" class="nav-item {{ request()->routeIs('public.tenants.*') ? 'active' : '' }}">
                 <i class="fas fa-store"></i> Daftar Tenant
             </a>
@@ -106,6 +107,7 @@
                 <i class="fas fa-handshake"></i> Daftar Sponsor
             </a>
             
+            <!-- RESOLVED: Feedback tetap ada (HEAD) karena controller-nya sudah kita fix -->
             <a href="{{ route('feedback.index') }}" class="nav-item {{ request()->routeIs('feedback.*') ? 'active' : '' }}">
                 <i class="fas fa-comment-dots"></i> Feedback
             </a>

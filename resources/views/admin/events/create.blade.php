@@ -18,7 +18,9 @@
         outline: none; border-color: var(--primary-blue); box-shadow: 0 0 0 3px rgba(0, 97, 255, 0.1);
     }
 
+    /* Update CSS agar support 2 kolom responsif */
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
 
     .btn-primary { 
         background: var(--primary-blue); color: white; border: none; 
@@ -55,7 +57,7 @@
     </div>
 @endif
 
-<form action="{{ route('admin.events.store') }}" method="POST">
+<form action="{{ route('admin.events.store') }}" method="POST" enctype="multipart/form-data">
     @csrf
     
     <div class="card">
@@ -76,6 +78,7 @@
                 <label>Tanggal & Waktu</label>
                 <input type="datetime-local" name="tanggal_event" value="{{ old('tanggal_event') }}" required>
             </div>
+            
             <div class="form-group">
                 <label>Status Event</label>
                 <select name="status_event" required>
@@ -86,11 +89,25 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label>Lokasi / Link Meeting</label>
-            <input type="text" name="lokasi" value="{{ old('lokasi') }}" placeholder="Masukkan lokasi atau link meeting">
+        <!-- NEW ROW: Menambahkan Input Kapasitas agar sinkron dengan Controller -->
+        <div class="row">
+            <div class="form-group">
+                <label>Lokasi / Link Meeting</label>
+                <input type="text" name="lokasi" value="{{ old('lokasi') }}" placeholder="Masukkan lokasi atau link meeting">
+            </div>
+
+            <div class="form-group">
+                <label>Total Kapasitas Peserta (Opsional)</label>
+                <input type="number" name="total_capacity" value="{{ old('total_capacity') }}" placeholder="Contoh: 100 (Kosongkan jika unlimited)" min="1">
+                <small style="color: #64748b; font-size: 0.8rem;">Jika diisi, sistem akan menolak pembelian jika tiket terjual melebihi angka ini.</small>
+            </div>
         </div>
 
+        <div class="form-group">
+            <label>Background Sertifikat (Opsional)</label>
+            <input type="file" name="certificate_background" accept="image/*">
+            <small style="color: #64748b; font-size: 0.8rem;">Upload gambar (png/jpg/jpeg) min 2MB. Kosongkan untuk menggunakan template default.</small>
+        </div>
 
         <div style="margin-top: 20px;">
             <button type="submit" class="btn-primary">
